@@ -5,6 +5,7 @@ members = ["proto", "coordinator", "worker"]
 tonic = "*"
 prost = "0.14"
 tonic-prost = "*"
+prost-types = "0.14"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 
 
