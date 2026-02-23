@@ -1,0 +1,12 @@
+[package]
+name = "coordinator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+proto = { path = "../proto" }
+tonic = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
+tokio = { workspace = true }
+tonic-prost = { workspace = true }

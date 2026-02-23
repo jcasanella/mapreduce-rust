@@ -1,0 +1,19 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package request;
+
+service Registration {
+    rpc Register (RegisterWorkerRequest) returns (RegisterWorkerResponse);
+}
+
+message RegisterWorkerRequest {
+    string workerId = 1;
+    string hostname = 2;
+}
+
+message RegisterWorkerResponse {
+    bool success = 1;
+    google.protobuf.Timestamp registeredAt = 2;
+}
