@@ -40,7 +40,7 @@ impl Registration for RegistrationService {
     ) -> Result<Response<RegisterWorkerResponse>, Status> {
         let RegisterWorkerRequest { worker_id, hostname } = request.into_inner();
         let registration = MyRegistration::new(hostname);
-        let registered_at = registration.registered_at.clone();
+        let registered_at = registration.registered_at;
         println!("Registering worker with id: {} at {} - hostname: {}", worker_id, registered_at, registration.hostname);
 
         self.workers

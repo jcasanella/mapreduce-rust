@@ -1212,6 +1212,7 @@ name = "worker"
 version = "0.1.0"
 dependencies = [
  "prost",
+ "proto",
  "tokio",
  "tonic",
 ]
