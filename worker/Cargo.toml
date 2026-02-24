@@ -8,4 +8,5 @@ proto = { path = "../proto" }
 tonic = { workspace = true }
 prost = { workspace = true }
 tokio = { workspace = true }
+dotenv = "0.15.0"
 
