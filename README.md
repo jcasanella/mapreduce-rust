@@ -46,6 +46,20 @@ mapreduce/
 - **Coordinator** - A gRPC server that listens on `[::1]:50051` and handles worker registration. Registered workers are stored in a thread-safe in-memory `HashMap` (`Arc<RwLock<HashMap>>`), keyed by `worker_id`.
 - **Worker** - A gRPC client that connects to the coordinator and sends a registration request with its `worker_id` and `hostname`.
 
+## Worker Configuration
+
+The worker reads its configuration from environment variables. You can set them via a `.env` file in the project root:
+
+```env
+WORKER_ID=worker-1
+HOSTNAME=worker1.local
+```
+
+| Variable    | Required | Default        | Description                          |
+|-------------|----------|----------------|--------------------------------------|
+| `WORKER_ID` | Yes      | —              | Unique identifier for the worker     |
+| `HOSTNAME`  | No       | `worker.local` | Hostname the worker registers with   |
+
 ## Running
 
 Start the coordinator:
