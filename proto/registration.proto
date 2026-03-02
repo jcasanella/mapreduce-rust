@@ -2,7 +2,7 @@ syntax="proto3";
 
 import "google/protobuf/timestamp.proto";
 
-package request;
+package registration;
 
 service Registration {
     rpc Register (RegisterWorkerRequest) returns (RegisterWorkerResponse);

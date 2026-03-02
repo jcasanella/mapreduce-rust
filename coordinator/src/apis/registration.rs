@@ -6,7 +6,7 @@ use proto::registration::{RegisterWorkerRequest, RegisterWorkerResponse};
 use tonic::{Request, Response, Status};
 
 pub struct RegistrationService {
-    workers: Arc<RwLock<HashMap<String, MyRegistration>>>,
+    workers: Arc<RwLock<HashMap<String, RegistrationInfo>>>,
 }
 
 impl RegistrationService {
@@ -18,14 +18,14 @@ impl RegistrationService {
 }
 
 #[derive(Debug)]
-pub struct MyRegistration {
+pub struct RegistrationInfo {
     pub hostname: String,
     pub registered_at: prost_types::Timestamp,
 }
 
-impl MyRegistration {
+impl RegistrationInfo {
     pub fn new(hostname: String) -> Self {
-        MyRegistration {
+        RegistrationInfo {
             hostname,
             registered_at: prost_types::Timestamp::default(),
         }
@@ -39,7 +39,7 @@ impl Registration for RegistrationService {
         request: Request<RegisterWorkerRequest>,
     ) -> Result<Response<RegisterWorkerResponse>, Status> {
         let RegisterWorkerRequest { worker_id, hostname } = request.into_inner();
-        let registration = MyRegistration::new(hostname);
+        let registration = RegistrationInfo::new(hostname);
         let registered_at = registration.registered_at;
         println!("Registering worker with id: {} at {} - hostname: {}", worker_id, registered_at, registration.hostname);
 
