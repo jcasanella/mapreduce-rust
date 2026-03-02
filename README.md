@@ -24,27 +24,35 @@ This project implements a MapReduce framework from scratch in Rust, leveraging:
 
 ```
 mapreduce/
-├── Cargo.toml                 # Workspace root
-├── proto/                     # Shared protobuf definitions
-│   ├── build.rs               # Compiles .proto files
-│   ├── registration.proto     # Worker registration service definition
-│   └── src/lib.rs             # Re-exports generated gRPC code
-├── coordinator/               # Coordinator server
+├── Cargo.toml                   # Workspace root
+├── Makefile                     # Build, lint, format, and run targets
+├── proto/                       # Shared protobuf definitions
+│   ├── build.rs                 # Compiles .proto files
+│   ├── registration.proto       # Worker registration service
+│   ├── heartbeat.proto          # Worker heartbeat service
+│   └── src/lib.rs               # Re-exports generated gRPC code
+├── coordinator/                 # Coordinator server
 │   └── src/
-│       ├── main.rs            # gRPC server entrypoint (listens on [::1]:50051)
+│       ├── main.rs              # gRPC server entrypoint (listens on [::1]:50051)
 │       └── apis/
 │           ├── mod.rs
-│           └── registration.rs  # Registration service implementation
-└── worker/                    # Worker client
+│           ├── registration.rs  # Registration service implementation
+│           └── heartbeat.rs     # Heartbeat service implementation
+└── worker/                      # Worker client
     └── src/
-        └── main.rs            # Connects to coordinator and registers
+        ├── main.rs              # Registers and sends periodic heartbeats
+        └── config.rs            # Configuration loaded from .env
 ```
 
 ## What's Been Implemented
 
-- **Proto crate** - Shared gRPC service definition for worker registration (`Register` RPC), compiled at build time and re-exported for both coordinator and worker crates.
-- **Coordinator** - A gRPC server that listens on `[::1]:50051` and handles worker registration. Registered workers are stored in a thread-safe in-memory `HashMap` (`Arc<RwLock<HashMap>>`), keyed by `worker_id`.
-- **Worker** - A gRPC client that connects to the coordinator and sends a registration request with its `worker_id` and `hostname`.
+- **Proto crate** - Shared gRPC service definitions for worker registration and heartbeat, compiled at build time and re-exported for both coordinator and worker crates.
+- **Coordinator** - A gRPC server that listens on `[::1]:50051` and handles two services:
+  - **Registration** - Workers register with their `worker_id` and `hostname`. Registrations are stored in a thread-safe in-memory `HashMap` (`Arc<RwLock<HashMap>>`), keyed by `worker_id`.
+  - **Heartbeat** - Workers send periodic heartbeats. The coordinator tracks each worker's last heartbeat timestamp and failed heartbeat count.
+- **Worker** - A gRPC client that:
+  1. Registers with the coordinator on startup
+  2. Sends heartbeats every 5 seconds via a background `tokio::spawn` task
 
 ## Worker Configuration
 
@@ -65,11 +73,24 @@ HOSTNAME=worker1.local
 Start the coordinator:
 
 ```bash
-cargo run -p coordinator
+make run-coordinator
 ```
 
-In another terminal, register a worker:
+In another terminal, start a worker:
 
 ```bash
-cargo run -p worker
+make run-worker
 ```
+
+## Build and Development
+
+| Command | Description |
+|---|---|
+| `make build` | Build all crates (proto, coordinator, worker) |
+| `make check` | Fast type-check without producing binaries |
+| `make clippy` | Run clippy lints on coordinator and worker |
+| `make fmt` | Auto-format all code |
+| `make fmt-check` | Check formatting (useful for CI) |
+| `make test` | Run all tests across the workspace |
+| `make all` | Full pipeline: format check + clippy + build + test |
+| `make clean` | Remove build artifacts |

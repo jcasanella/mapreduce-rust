@@ -1,0 +1,13 @@
+syntax="proto3";
+
+import "google/protobuf/empty.proto";
+
+package heartbeat;
+
+service Heartbeat {
+    rpc Heartbeat (HeartbeatRequest) returns (google.protobuf.Empty);
+}
+
+message HeartbeatRequest {
+    string workerId = 1;
+}
