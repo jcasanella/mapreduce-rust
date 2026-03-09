@@ -1,6 +1,6 @@
-use proto::registration::registration_client::RegistrationClient;
-use proto::heartbeat::heartbeat_client::HeartbeatClient;
 use dotenv::dotenv;
+use proto::heartbeat::heartbeat_client::HeartbeatClient;
+use proto::registration::registration_client::RegistrationClient;
 
 mod config;
 use config::Config;

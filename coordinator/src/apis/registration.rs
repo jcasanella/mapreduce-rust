@@ -1,19 +1,17 @@
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
+use crate::coordinator_state::CoordinatorState;
 use proto::registration::registration_server::Registration;
 use proto::registration::{RegisterWorkerRequest, RegisterWorkerResponse};
 use tonic::{Request, Response, Status};
 
 pub struct RegistrationService {
-    workers: Arc<RwLock<HashMap<String, RegistrationInfo>>>,
+    state: Arc<CoordinatorState>,
 }
 
 impl RegistrationService {
-    pub fn new() -> Self {
-        Self {
-            workers: Arc::new(RwLock::new(HashMap::new())),
-        }
+    pub fn new(state: Arc<CoordinatorState>) -> Self {
+        Self { state }
     }
 }
 
@@ -38,14 +36,19 @@ impl Registration for RegistrationService {
         &self,
         request: Request<RegisterWorkerRequest>,
     ) -> Result<Response<RegisterWorkerResponse>, Status> {
-        let RegisterWorkerRequest { worker_id, hostname } = request.into_inner();
+        let RegisterWorkerRequest {
+            worker_id,
+            hostname,
+        } = request.into_inner();
         let registration = RegistrationInfo::new(hostname);
         let registered_at = registration.registered_at;
-        println!("Registering worker with id: {} at {} - hostname: {}", worker_id, registered_at, registration.hostname);
+        println!(
+            "Registering worker with id: {} at {} - hostname: {}",
+            worker_id, registered_at, registration.hostname
+        );
 
-        self.workers
-            .write()
-            .map_err(|e| Status::internal(e.to_string()))?
+        self.state
+            .registered_workers
             .insert(worker_id, registration);
 
         let response = RegisterWorkerResponse {
@@ -56,4 +59,3 @@ impl Registration for RegistrationService {
         Ok(Response::new(response))
     }
 }
-

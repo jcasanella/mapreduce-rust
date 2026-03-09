@@ -1,2 +1,2 @@
-pub mod registration;
 pub mod heartbeat;
+pub mod registration;
