@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use proto::heartbeat::heartbeat_server::HeartbeatServer;
 use proto::registration::registration_server::RegistrationServer;
@@ -21,11 +22,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Coordinator server listening on {}", addr);
 
-    Server::builder()
-        .add_service(RegistrationServer::new(registration_service))
-        .add_service(HeartbeatServer::new(heartbeat_service))
-        .serve(addr)
-        .await?;
+    // Run the gRPC server in a separate task
+    let server_handler = tokio::spawn( async move {
+        Server::builder()
+            .add_service(RegistrationServer::new(registration_service))
+            .add_service(HeartbeatServer::new(heartbeat_service))
+            .serve(addr)
+            .await
+    });
+
+    // Run the heartbeat monitoring in a separate task
+    let hearbeat_handler = tokio::spawn(async {
+        let mut interval = tokio::time::interval(Duration::from_secs((5)));
+        loop {
+            interval.tick().await;
+            println!("Hearbeat thread");
+        }
+    });
+
+    // Wait for both tasks to complete (in practice, the server will run indefinitely)
+    tokio::select! {
+        res = server_handler => {
+            if let Err(e) = res {
+                eprintln!("Server error: {}", e);
+            }
+        },
+        _ = hearbeat_handler => {
+            println!("Hearbeat thread finished");
+        }
+    }
 
     Ok(())
 }

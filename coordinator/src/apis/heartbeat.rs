@@ -37,6 +37,12 @@ impl Heartbeat for HeartbeatService {
         let req = request.into_inner();
         println!("Received heartbeat from worker: {}", req.worker_id);
 
+        // Validate that the worker is registered
+        if !self.state.registered_workers.contains_key(&req.worker_id) {
+            println!("Received heartbeat from unregistered worker: {}", req.worker_id);
+            return Err(Status::not_found("Worker not registered"));
+        }
+
         let heartbeat_info =
             HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::default());
 
