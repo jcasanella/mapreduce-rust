@@ -32,11 +32,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Run the heartbeat monitoring in a separate task
-    let hearbeat_handler = tokio::spawn(async {
-        let mut interval = tokio::time::interval(Duration::from_secs((5)));
+    let hearbeat_handler = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(5));
         loop {
-            interval.tick().await;
-            println!("Hearbeat thread");
+            interval.tick().await;  
+            let dead_workers = state.registered_workers
+                .iter()
+                .filter(|entry| !state.is_worker_alive(entry.key().clone()))
+                .map(|entry| entry.key().clone())
+                .collect::<Vec<String>>();
+
+            for worker_id in dead_workers {
+                println!("Worker {} is dead. Removing from registered workers.", worker_id);
+                state.registered_workers.remove(&worker_id);
+                state.heartbeats.remove(&worker_id);
+            }
         }
     });
 
