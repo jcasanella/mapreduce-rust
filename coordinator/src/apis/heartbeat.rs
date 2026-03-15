@@ -44,7 +44,7 @@ impl Heartbeat for HeartbeatService {
         }
 
         let heartbeat_info =
-            HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::default());
+            HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
 
         match self
             .state

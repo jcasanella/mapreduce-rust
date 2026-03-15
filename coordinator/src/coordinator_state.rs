@@ -24,10 +24,10 @@ impl CoordinatorState {
             
                 // Consider worker alive if last heartbeat was within 10 seconds
                 if elapsed < 10 {
-                    println!("Worker {} is alive (last heartbeat was {} seconds ago)", worker_id, elapsed);
+                    println!("Worker {} is alive (last heartbeat was {} seconds ago - datetime {})", worker_id, elapsed, info.last_heartbeat);
                     return true;
                 } else {
-                    println!("Worker {} is considered dead (last heartbeat was {} seconds ago)", worker_id, elapsed);
+                    println!("Worker {} is considered dead (last heartbeat was {} seconds ago - datetime {})", worker_id, elapsed, info.last_heartbeat);
                     return false;
                 }
             }

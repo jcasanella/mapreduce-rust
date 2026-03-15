@@ -27,7 +27,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Server::builder()
             .add_service(RegistrationServer::new(registration_service))
             .add_service(HeartbeatServer::new(heartbeat_service))
-            .serve(addr)
+            .serve_with_shutdown(addr, async {
+                // Wait for a shutdown signal (e.g., Ctrl+C)
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("Failed to listen for shutdown signal");
+                println!("Shutdown signal received. Shutting down server...");
+            })
             .await
     });
 

@@ -22,10 +22,10 @@ pub struct RegistrationInfo {
 }
 
 impl RegistrationInfo {
-    pub fn new(hostname: String) -> Self {
+    pub fn new(hostname: String, registered_at: prost_types::Timestamp) -> Self {
         RegistrationInfo {
             hostname,
-            registered_at: prost_types::Timestamp::default(),
+            registered_at,
         }
     }
 }
@@ -40,7 +40,7 @@ impl Registration for RegistrationService {
             worker_id,
             hostname,
         } = request.into_inner();
-        let registration = RegistrationInfo::new(hostname);
+        let registration = RegistrationInfo::new(hostname, prost_types::Timestamp::from(std::time::SystemTime::now()));
         let registered_at = registration.registered_at;
         println!(
             "Registering worker with id: {} at {} - hostname: {}",
