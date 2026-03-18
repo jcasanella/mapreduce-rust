@@ -34,4 +34,23 @@ impl CoordinatorState {
             None => false, // No heartbeat info found for this worker
         }
     }
+
+    pub fn increment_failed_heartbeats(&self, worker_id: String) {
+        if let Some(mut info) = self.heartbeats.get_mut(&worker_id) {
+            info.num_failed_heartbeats += 1;
+            println!("Incremented failed heartbeats for worker {}: now {}", worker_id, info.num_failed_heartbeats);
+        } else {
+            println!("No heartbeat info found for worker {} to increment failed heartbeats", worker_id);
+        }
+
+    }
+
+    pub fn reset_failed_heartbeats(&self, worker_id: String) {
+        if let Some(mut info) = self.heartbeats.get_mut(&worker_id) {
+            info.num_failed_heartbeats = 0;
+            println!("Reset failed heartbeats for worker {}: now {}", worker_id, info.num_failed_heartbeats);
+        } else {
+            println!("No heartbeat info found for worker {} to reset failed heartbeats", worker_id);
+        }
+    }
 }
