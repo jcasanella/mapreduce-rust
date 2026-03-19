@@ -42,17 +42,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut interval = tokio::time::interval(Duration::from_secs(10));
         loop {
             interval.tick().await;  
-            let dead_workers = state.registered_workers
-                .iter()
-                .filter(|entry| !state.is_worker_alive(entry.key().clone()))
-                .map(|entry| entry.key().clone())
-                .collect::<Vec<String>>();
 
-            for worker_id in dead_workers {
-                println!("Worker {} is dead. Removing from registered workers.", worker_id);
-                state.registered_workers.remove(&worker_id);
-                state.heartbeats.remove(&worker_id);
-            }
+            // Iterate over all the heartbeats and check if any worker has failed to send a heartbeat in the last 10 seconds
+            println!("Checking heartbeats...");
+
+            // let state_clone = Arc::clone(&state);
+            // tokio::task::spawn_blocking(move || {
+                state.process_heartbeat();
+            // }).await.expect("Failed to process heartbeats");
         }
     });
 
