@@ -10,3 +10,4 @@ prost = { workspace = true }
 prost-types = { workspace = true }
 tokio = { workspace = true }
 tonic-prost = { workspace = true }
+dashmap = "6.1.0"

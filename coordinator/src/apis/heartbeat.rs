@@ -1,7 +1,8 @@
-use proto::heartbeat::heartbeat_server::Heartbeat;
+use crate::coordinator_state::CoordinatorState;
 use proto::heartbeat::HeartbeatRequest;
+use proto::heartbeat::heartbeat_server::Heartbeat;
+use std::sync::Arc;
 use tonic::{Request, Response, Status};
-use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 #[derive(Debug)]
 pub struct HeartbeatInfo {
@@ -21,35 +22,38 @@ impl HeartbeatInfo {
 }
 
 pub struct HeartbeatService {
-    heartbeats: Arc<RwLock<HashMap<String, HeartbeatInfo>>>,
+    state: Arc<CoordinatorState>,
 }
 
 impl HeartbeatService {
-    pub fn new() -> Self {
-        Self {
-            heartbeats: Arc::new(RwLock::new(HashMap::new())),
-        }
+    pub fn new(state: Arc<CoordinatorState>) -> Self {
+        Self { state }
     }
 }
 
 #[tonic::async_trait]
 impl Heartbeat for HeartbeatService {
-    async fn heartbeat(
-        &self,
-        request: Request<HeartbeatRequest>,
-    ) -> Result<Response<()>, Status> {
+    async fn heartbeat(&self, request: Request<HeartbeatRequest>) -> Result<Response<()>, Status> {
         let req = request.into_inner();
         println!("Received heartbeat from worker: {}", req.worker_id);
 
-        let heartbeat_info = HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::default());
+        // Validate that the worker is registered
+        if !self.state.registered_workers.contains_key(&req.worker_id) {
+            println!("Received heartbeat from unregistered worker: {}", req.worker_id);
+            return Err(Status::not_found("Worker not registered"));
+        }
 
-        match self.heartbeats
-            .write()
-            .map_err(|e| Status::internal(e.to_string()))?
-            .insert(req.worker_id.clone(), heartbeat_info) {
-                Some(_) => println!("Updated heartbeat for worker: {}", req.worker_id),
-                None => println!("Inserted new heartbeat for worker: {}", req.worker_id),
-            }
+        let heartbeat_info =
+            HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
+
+        match self
+            .state
+            .heartbeats
+            .insert(req.worker_id.clone(), heartbeat_info)
+        {
+            Some(_) => println!("Updated heartbeat for worker: {}", req.worker_id),
+            None => println!("Inserted new heartbeat for worker: {}", req.worker_id),
+        }
 
         Ok(Response::new(()))
     }

@@ -34,6 +34,7 @@ mapreduce/
 ├── coordinator/                 # Coordinator server
 │   └── src/
 │       ├── main.rs              # gRPC server entrypoint (listens on [::1]:50051)
+│       ├── coordinator_state.rs # Shared state: worker registry and heartbeat tracking
 │       └── apis/
 │           ├── mod.rs
 │           ├── registration.rs  # Registration service implementation
@@ -50,6 +51,8 @@ mapreduce/
 - **Coordinator** - A gRPC server that listens on `[::1]:50051` and handles two services:
   - **Registration** - Workers register with their `worker_id` and `hostname`. Registrations are stored in a thread-safe in-memory `HashMap` (`Arc<RwLock<HashMap>>`), keyed by `worker_id`.
   - **Heartbeat** - Workers send periodic heartbeats. The coordinator tracks each worker's last heartbeat timestamp and failed heartbeat count.
+  - **Heartbeat monitoring** - A background task runs every 10 seconds to validate heartbeats against registered workers. If a worker has not sent a heartbeat within 10 seconds, it is considered dead and automatically removed from both the registered workers and heartbeats maps.
+- **Coordinator state** - Shared state (`CoordinatorState`) uses `DashMap` for lock-free concurrent access to registered workers and heartbeat data. The coordinator runs two concurrent `tokio::spawn` tasks: one for the gRPC server and one for heartbeat monitoring, coordinated via `tokio::select!` with graceful shutdown on Ctrl+C.
 - **Worker** - A gRPC client that:
   1. Registers with the coordinator on startup
   2. Sends heartbeats every 5 seconds via a background `tokio::spawn` task
