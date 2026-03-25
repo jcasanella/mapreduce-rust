@@ -5,9 +5,18 @@ import "google/protobuf/empty.proto";
 package heartbeat;
 
 service Heartbeat {
-    rpc Heartbeat (HeartbeatRequest) returns (google.protobuf.Empty);
+    rpc Heartbeat (HeartbeatRequest) returns (HeartbeatResponse);
 }
 
 message HeartbeatRequest {
     string workerId = 1;
+}
+
+enum HeartbeatAction {
+    INSERTED = 0;
+    UPDATED = 1;
+}
+
+message HeartbeatResponse {
+    HeartbeatAction action = 1;
 }
