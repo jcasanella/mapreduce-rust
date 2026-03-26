@@ -1,5 +1,5 @@
 use crate::coordinator_state::CoordinatorState;
-use proto::heartbeat::{HeartbeatRequest, HeartbeatResponse, HeartbeatAction};
+use proto::heartbeat::HeartbeatRequest;
 use proto::heartbeat::heartbeat_server::Heartbeat;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
@@ -33,7 +33,7 @@ impl HeartbeatService {
 
 #[tonic::async_trait]
 impl Heartbeat for HeartbeatService {
-    async fn heartbeat(&self, request: Request<HeartbeatRequest>) -> Result<Response<HeartbeatResponse>, Status> {
+    async fn heartbeat(&self, request: Request<HeartbeatRequest>) -> Result<Response<()>, Status> {
         let req = request.into_inner();
         println!("Received heartbeat from worker: {}", req.worker_id);
 
@@ -46,22 +46,16 @@ impl Heartbeat for HeartbeatService {
         let heartbeat_info =
             HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
 
-        let response = match self
+        match self
             .state
             .heartbeats
             .insert(req.worker_id.clone(), heartbeat_info)
         {
-            Some(_) => {
-                println!("Updated heartbeat for worker: {}", req.worker_id);
-                HeartbeatResponse { action: HeartbeatAction::Updated as i32 }
-            },
-            None => {
-                println!("Inserted new heartbeat for worker: {}", req.worker_id);
-                HeartbeatResponse { action: HeartbeatAction::Inserted as i32 }
-            },
+            Some(_) => println!("Updated heartbeat for worker: {}", req.worker_id),
+            None => println!("Inserted new heartbeat for worker: {}", req.worker_id)
         };
 
-        Ok(Response::new(response))
+        Ok(Response::new(()))
     }
 }
 
@@ -87,9 +81,12 @@ mod tests {
         let response = heartbeat_service.heartbeat(Request::new(request)).await;
 
         // Verify the response and that the heartbeat was recorded
-        let resp = response.unwrap().into_inner();
-        assert_eq!(resp, HeartbeatResponse { action: HeartbeatAction::Inserted as i32 });
+        assert!(response.is_ok());
         assert!(state.heartbeats.contains_key(&worker_id));
+
+        let time_now = prost_types::Timestamp::from(std::time::SystemTime::now());
+        assert!(state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone().nanos > 0);
+        assert!(state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone().nanos < time_now.nanos);
     }
 
     #[tokio::test]
@@ -108,11 +105,15 @@ mod tests {
         let request2 = HeartbeatRequest { worker_id: worker_id.clone() };
         #[allow(unused_variables)]
         let response1 =heartbeat_service.heartbeat(Request::new(request1)).await;
+        let heartbeat_info_before = state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone();
+
         let response2 = heartbeat_service.heartbeat(Request::new(request2)).await;
+        let heartbeat_info_after = state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone();
         
         // Verify the response and that the heartbeat was updated
-        let resp = response2.unwrap().into_inner();
-        assert_eq!(resp, HeartbeatResponse { action: HeartbeatAction::Updated as i32 });
+        assert!(response1.is_ok());
+        assert!(response2.is_ok());
+        assert!(heartbeat_info_after.nanos > heartbeat_info_before.nanos);
         assert!(state.heartbeats.contains_key(&worker_id));
     }
 
