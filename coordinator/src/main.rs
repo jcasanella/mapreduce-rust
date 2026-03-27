@@ -45,11 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Iterate over all the heartbeats and check if any worker has failed to send a heartbeat in the last 10 seconds
             println!("Checking heartbeats...");
-
-            // let state_clone = Arc::clone(&state);
-            // tokio::task::spawn_blocking(move || {
-                state.process_heartbeat();
-            // }).await.expect("Failed to process heartbeats");
+            state.process_heartbeat();
         }
     });
 

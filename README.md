@@ -53,6 +53,8 @@ mapreduce/
   - **Heartbeat** - Workers send periodic heartbeats. The coordinator tracks each worker's last heartbeat timestamp and failed heartbeat count.
   - **Heartbeat monitoring** - A background task runs every 10 seconds to validate heartbeats against registered workers. If a worker has not sent a heartbeat within 10 seconds, it is considered dead and automatically removed from both the registered workers and heartbeats maps.
 - **Coordinator state** - Shared state (`CoordinatorState`) uses `DashMap` for lock-free concurrent access to registered workers and heartbeat data. The coordinator runs two concurrent `tokio::spawn` tasks: one for the gRPC server and one for heartbeat monitoring, coordinated via `tokio::select!` with graceful shutdown on Ctrl+C.
+- **Duplicate registration prevention** - The registration service now rejects re-registration of an already-registered worker with a `ALREADY_EXISTS` gRPC status code.
+- **Unit tests** - Both the registration and heartbeat services have unit tests covering: successful registration, duplicate registration rejection, registering multiple workers, first heartbeat insertion, heartbeat timestamp update, and rejecting heartbeats from unregistered workers.
 - **Worker** - A gRPC client that:
   1. Registers with the coordinator on startup
   2. Sends heartbeats every 5 seconds via a background `tokio::spawn` task
