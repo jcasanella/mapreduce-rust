@@ -1,5 +1,4 @@
-use std::sync::Arc;
-use std::time::Duration;
+use std::{time::Duration, sync::Arc, path};
 
 use proto::heartbeat::heartbeat_server::HeartbeatServer;
 use proto::registration::registration_server::RegistrationServer;
@@ -7,13 +6,20 @@ use tonic::transport::Server;
 
 mod apis;
 mod coordinator_state;
+mod config;
+mod mapper;
 
+use config::Config;
 use apis::heartbeat::HeartbeatService;
 use apis::registration::RegistrationService;
 use coordinator_state::CoordinatorState;
+use mapper::coordinator_mapper;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Config::from_env()?;
+    coordinator_mapper::setup_mappers(path::Path::new(&config.mapper_resources_dir))?;
+
     let addr = "[::1]:50051".parse()?;
 
     let state = Arc::new(CoordinatorState::new());
