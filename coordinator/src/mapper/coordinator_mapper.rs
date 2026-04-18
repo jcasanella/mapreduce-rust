@@ -7,7 +7,7 @@ struct CoordinatorMapper {
 }
 
 impl CoordinatorMapper {
-    pub fn new() -> Self {
+    fn new() -> Self {
         CoordinatorMapper {
             mappers: HashMap::new(),
             mappers_remaining: 0,
