@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package mapper;
+
+service Mapper {
+    rpc GetNewTask (google.protobuf.Empty) returns (GetNewTaskResponse);
+}
+
+message GetNewTaskResponse {
+    string file_path = 1;
+    int32 task_id = 2;
+}

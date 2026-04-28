@@ -37,6 +37,12 @@ impl CoordinatorMapper {
     }
 }
 
+impl Default for CoordinatorMapper {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub fn setup_mappers(dir: &Path) -> io::Result<()> {
     let mut coordinator_mapper = CoordinatorMapper::new();
 

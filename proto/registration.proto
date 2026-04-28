@@ -1,4 +1,4 @@
-syntax="proto3";
+syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
@@ -9,11 +9,11 @@ service Registration {
 }
 
 message RegisterWorkerRequest {
-    string workerId = 1;
+    string worker_id = 1;
     string hostname = 2;
 }
 
 message RegisterWorkerResponse {
     bool success = 1;
-    google.protobuf.Timestamp registeredAt = 2;
+    google.protobuf.Timestamp registered_at = 2;
 }

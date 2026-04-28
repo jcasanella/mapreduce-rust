@@ -1,5 +1,5 @@
-use std::{path, sync::Arc};
 use dotenv::dotenv;
+use std::{path, sync::Arc};
 
 mod apis;
 mod config;
