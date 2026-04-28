@@ -47,6 +47,7 @@ pub fn setup_mappers(dir: &Path) -> io::Result<()> {
             if path.is_file()
                 && let Some(file_name) = path.file_name().and_then(|n| n.to_str())
             {
+                println!("Adding mapper for file: {}", file_name);
                 coordinator_mapper.add_mapper(file_name);
             }
         }

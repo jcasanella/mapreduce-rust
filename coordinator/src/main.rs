@@ -1,4 +1,5 @@
 use std::{path, sync::Arc};
+use dotenv::dotenv;
 
 mod apis;
 mod config;
@@ -13,6 +14,8 @@ use mapper::coordinator_mapper;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
+
     let config = Config::from_env()?;
     coordinator_mapper::setup_mappers(path::Path::new(&config.mapper_resources_dir))?;
 
