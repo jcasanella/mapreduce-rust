@@ -1,11 +1,11 @@
-use std::{sync::Arc, path};
+use std::{path, sync::Arc};
 
 mod apis;
-mod coordinator_state;
 mod config;
+mod coordinator_state;
+mod heartbeat;
 mod mapper;
 mod server;
-mod heartbeat;
 
 use config::Config;
 use coordinator_state::CoordinatorState;
@@ -19,10 +19,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(CoordinatorState::new());
 
     // Run the gRPC server in a separate task
-    let server_handler = tokio::spawn( server::run(config.addr, Arc::clone(&state)) );
+    let server_handler = tokio::spawn(server::run(config.addr, Arc::clone(&state)));
 
     // Run the heartbeat monitoring in a separate task
-    let heartbeat_handler = tokio::spawn( heartbeat::run(Arc::clone(&state)) );
+    let heartbeat_handler = tokio::spawn(heartbeat::run(Arc::clone(&state)));
 
     // Wait for both tasks to complete (in practice, the server will run indefinitely)
     tokio::select! {

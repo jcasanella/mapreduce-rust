@@ -1,5 +1,5 @@
 use crate::mapper::task_info::TaskInfo;
-use std::{collections::HashMap, io, path::Path, fs};
+use std::{collections::HashMap, fs, io, path::Path};
 
 struct CoordinatorMapper {
     mappers: HashMap<String, TaskInfo>,
@@ -15,10 +15,12 @@ impl CoordinatorMapper {
     }
 
     fn add_mapper(&mut self, task_id: &str) {
-        self.mappers.insert(task_id.to_string(), TaskInfo::new(task_id));
+        self.mappers
+            .insert(task_id.to_string(), TaskInfo::new(task_id));
         self.mappers_remaining += 1;
     }
 
+    #[allow(dead_code)]
     fn complete_mapper(&mut self, worker_id: &String) {
         if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
             mapper_info.complete();
@@ -26,6 +28,7 @@ impl CoordinatorMapper {
         }
     }
 
+    #[allow(dead_code)]
     fn fail_mapper(&mut self, worker_id: &String, error_message: String) {
         if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
             mapper_info.fail(error_message);
@@ -41,14 +44,14 @@ pub fn setup_mappers(dir: &Path) -> io::Result<()> {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
-            if path.is_file() {
-                if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
-                    coordinator_mapper.add_mapper(file_name);
-                }
+            if path.is_file()
+                && let Some(file_name) = path.file_name().and_then(|n| n.to_str())
+            {
+                coordinator_mapper.add_mapper(file_name);
             }
         }
     }
 
     Ok(())
-    // Every file gets a mapper task 
+    // Every file gets a mapper task
 }

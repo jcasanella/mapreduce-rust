@@ -1,5 +1,6 @@
 use std::{env, net::SocketAddr};
 
+#[allow(dead_code)]
 pub struct Config {
     pub mapper_resources_dir: String,
     pub mapper_output_dir: String,
