@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use proto::heartbeat::heartbeat_client::HeartbeatClient;
+use proto::mapper::mapper_client::MapperClient;
 use proto::registration::registration_client::RegistrationClient;
 
 mod config;
@@ -11,8 +12,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = Config::from_env()?;
     let worker_id = config.worker_id;
+    let coordinator_addr = config.coordinator_addr;
 
-    let mut registration_client = RegistrationClient::connect("http://[::1]:50051").await?;
+    let mut registration_client =
+        RegistrationClient::connect(coordinator_addr.clone()).await?;
 
     let request = tonic::Request::new(proto::registration::RegisterWorkerRequest {
         worker_id: worker_id.clone(),
@@ -23,9 +26,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Registered worker: {:?}", registered);
 
     let heartbeat_handle = tokio::spawn(async move {
-        let mut heartbeat_client = HeartbeatClient::connect("http://[::1]:50051")
-            .await
-            .expect("Failed to connect heartbeat client");
+        let mut heartbeat_client =
+            HeartbeatClient::connect(coordinator_addr.clone())
+                .await
+                .expect("Failed to connect heartbeat client");
+
+        let has_task = false;
+        let mut mapper_client =
+            MapperClient::connect(coordinator_addr).await.expect("Failed to connect mapper client");
 
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
@@ -34,6 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let request = tonic::Request::new(proto::heartbeat::HeartbeatRequest {
                 worker_id: worker_id.clone(),
             });
+
+            if !has_task {
+                // TODO - check what returns if can assign a task or not
+                mapper_client.get_new_task(tonic::Request::new(())).await.expect("Failed to get new task");
+            }
 
             match heartbeat_client.heartbeat(request).await {
                 Ok(response) => println!("Heartbeat response: {:?}", response),
