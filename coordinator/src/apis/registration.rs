@@ -44,11 +44,11 @@ impl Registration for RegistrationService {
             hostname,
             prost_types::Timestamp::from(std::time::SystemTime::now()),
         );
-        let registered_at = registration.registered_at;
         println!(
-            "Registering worker with id: {} at {} - hostname: {}",
-            worker_id, registered_at, registration.hostname
+            "Registering worker with id: {} - hostname: {}",
+            worker_id, registration.hostname
         );
+        let registered_at = registration.registered_at.clone();
 
         if self.state.registered_workers.contains_key(&worker_id) {
             println!(
@@ -63,7 +63,6 @@ impl Registration for RegistrationService {
             .insert(worker_id, registration);
 
         let response = RegisterWorkerResponse {
-            success: true,
             registered_at: Some(registered_at),
         };
 

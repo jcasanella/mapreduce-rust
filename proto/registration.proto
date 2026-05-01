@@ -14,6 +14,5 @@ message RegisterWorkerRequest {
 }
 
 message RegisterWorkerResponse {
-    bool success = 1;
-    google.protobuf.Timestamp registered_at = 2;
+    google.protobuf.Timestamp registered_at = 1;
 }
