@@ -21,7 +21,11 @@ impl CoordinatorState {
         let mut to_remove = Vec::new();
         let mut to_reset = Vec::new();
 
-        println!("Registered workers: {}, Heartbeats tracked: {}", self.registered_workers.len(), self.heartbeats.len());
+        println!(
+            "Registered workers: {}, Heartbeats tracked: {}",
+            self.registered_workers.len(),
+            self.heartbeats.len()
+        );
 
         // Phase 1: read-only, collect decisions
         for entry in self.heartbeats.iter() {
@@ -36,24 +40,33 @@ impl CoordinatorState {
                 }
             } else {
                 // Not older than 10 seconds, reset retries to 0
-                to_reset.push(entry.key().clone()); 
+                to_reset.push(entry.key().clone());
             }
         }
 
         // Phase 2: mutate freely
         for worker_id in to_increment {
-            println!("Worker {} has not sent a heartbeat in the last 10 seconds, incrementing failed heartbeats", worker_id);
+            println!(
+                "Worker {} has not sent a heartbeat in the last 10 seconds, incrementing failed heartbeats",
+                worker_id
+            );
             self.increment_failed_heartbeats(&worker_id);
         }
 
         for worker_id in to_remove {
-            println!("Worker {} has failed to send a heartbeat in the last 10 seconds for 3 consecutive times, removing worker", worker_id);
+            println!(
+                "Worker {} has failed to send a heartbeat in the last 10 seconds for 3 consecutive times, removing worker",
+                worker_id
+            );
             self.registered_workers.remove(&worker_id);
             self.heartbeats.remove(&worker_id);
         }
 
         for worker_id in to_reset {
-            println!("Worker {} has sent a heartbeat in the last 10 seconds, resetting failed heartbeats", worker_id);
+            println!(
+                "Worker {} has sent a heartbeat in the last 10 seconds, resetting failed heartbeats",
+                worker_id
+            );
             self.reset_failed_heartbeats(&worker_id);
         }
     }
@@ -61,20 +74,37 @@ impl CoordinatorState {
     fn increment_failed_heartbeats(&self, worker_id: &String) {
         if let Some(mut info) = self.heartbeats.get_mut(worker_id) {
             info.num_failed_heartbeats += 1;
-            println!("Incremented failed heartbeats for worker {}: now {}", worker_id, info.num_failed_heartbeats);
+            println!(
+                "Incremented failed heartbeats for worker {}: now {}",
+                worker_id, info.num_failed_heartbeats
+            );
         } else {
-            println!("No heartbeat info found for worker {} to increment failed heartbeats", worker_id);
+            println!(
+                "No heartbeat info found for worker {} to increment failed heartbeats",
+                worker_id
+            );
         }
-
     }
 
     fn reset_failed_heartbeats(&self, worker_id: &String) {
         if let Some(mut info) = self.heartbeats.get_mut(worker_id) {
             info.num_failed_heartbeats = 0;
-            println!("Reset heartbeats for worker {}: now {}", worker_id, info.num_failed_heartbeats);
+            println!(
+                "Reset heartbeats for worker {}: now {}",
+                worker_id, info.num_failed_heartbeats
+            );
         } else {
-            println!("No heartbeat info found for worker {} to reset failed heartbeats", worker_id);
+            println!(
+                "No heartbeat info found for worker {} to reset failed heartbeats",
+                worker_id
+            );
         }
+    }
+}
+
+impl Default for CoordinatorState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -86,34 +116,82 @@ mod tests {
     async fn test_heartbeat_failed_processing() {
         let state = CoordinatorState::new();
         let worker_id = "worker1".to_string();
-        let registration_info = RegistrationInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.registered_workers.insert(worker_id.clone(), registration_info);
-        let heartbeat_info = HeartbeatInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now() - std::time::Duration::from_secs(11)));
+        let registration_info = RegistrationInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .registered_workers
+            .insert(worker_id.clone(), registration_info);
+        let heartbeat_info = HeartbeatInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(
+                std::time::SystemTime::now() - std::time::Duration::from_secs(11),
+            ),
+        );
         state.heartbeats.insert(worker_id.clone(), heartbeat_info);
 
         // Process heartbeats, should increment failed heartbeats to 1
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 1);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            1
+        );
     }
 
     #[tokio::test]
     async fn test_heartbeat_removal() {
         let state = CoordinatorState::new();
         let worker_id = "worker2".to_string();
-        let registration_info = RegistrationInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.registered_workers.insert(worker_id.clone(), registration_info);
-        let heartbeat_info = HeartbeatInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now() - std::time::Duration::from_secs(11)));
+        let registration_info = RegistrationInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .registered_workers
+            .insert(worker_id.clone(), registration_info);
+        let heartbeat_info = HeartbeatInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(
+                std::time::SystemTime::now() - std::time::Duration::from_secs(11),
+            ),
+        );
         state.heartbeats.insert(worker_id.clone(), heartbeat_info);
 
         // Process heartbeats, accept 3 failed heartbeats, then remove worker
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 1);
-        
-        state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 2);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            1
+        );
 
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 3);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            2
+        );
+
+        state.process_heartbeat();
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            3
+        );
 
         // After 3 failed heartbeats, worker should be removed
         state.process_heartbeat();
@@ -126,23 +204,59 @@ mod tests {
     async fn test_heartbeat_reset() {
         let state = CoordinatorState::new();
         let worker_id = "worker3".to_string();
-        let registration_info = RegistrationInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.registered_workers.insert(worker_id.clone(), registration_info);
-        let heartbeat_info = HeartbeatInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now() - std::time::Duration::from_secs(11)));
-        state.heartbeats.insert(worker_id.clone(), heartbeat_info); 
+        let registration_info = RegistrationInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .registered_workers
+            .insert(worker_id.clone(), registration_info);
+        let heartbeat_info = HeartbeatInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(
+                std::time::SystemTime::now() - std::time::Duration::from_secs(11),
+            ),
+        );
+        state.heartbeats.insert(worker_id.clone(), heartbeat_info);
 
         // Process heartbeats, should increment failed heartbeats to 1
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 1);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            1
+        );
 
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 2);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            2
+        );
 
         // Now simulate a heartbeat within the last 10 seconds, which should reset failed heartbeats to 0
-        let new_heartbeat_info = HeartbeatInfo::new(worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.heartbeats.insert(worker_id.clone(), new_heartbeat_info);
-        
+        let new_heartbeat_info = HeartbeatInfo::new(
+            worker_id.clone(),
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .heartbeats
+            .insert(worker_id.clone(), new_heartbeat_info);
+
         state.process_heartbeat();
-        assert_eq!(state.heartbeats.get(&worker_id).unwrap().num_failed_heartbeats, 0);
+        assert_eq!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .num_failed_heartbeats,
+            0
+        );
     }
 }

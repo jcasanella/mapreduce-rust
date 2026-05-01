@@ -1,5 +1,5 @@
-use std::{time::Duration, sync::Arc};
 use crate::coordinator_state::CoordinatorState;
+use std::{sync::Arc, time::Duration};
 
 pub async fn run(state: Arc<CoordinatorState>) {
     let mut interval = tokio::time::interval(Duration::from_secs(10));
