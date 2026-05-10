@@ -57,8 +57,17 @@ pub fn setup_mappers(dir: &Path) -> io::Result<()> {
                 coordinator_mapper.add_mapper(file_name);
             }
         }
-    }
 
-    Ok(())
-    // Every file gets a mapper task
+        println!(
+            "Finished setting up mappers. Total mappers: {}",
+            coordinator_mapper.mappers.len()
+        );
+
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("Directory not found: {}", dir.display()),
+        ))
+    }
 }

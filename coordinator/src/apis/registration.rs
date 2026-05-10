@@ -48,7 +48,7 @@ impl Registration for RegistrationService {
             "Registering worker with id: {} - hostname: {}",
             worker_id, registration.hostname
         );
-        let registered_at = registration.registered_at.clone();
+        let registered_at = registration.registered_at;
 
         if self.state.registered_workers.contains_key(&worker_id) {
             println!(
