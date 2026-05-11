@@ -25,6 +25,11 @@ impl TaskInfo {
     }
 
     #[allow(dead_code)]
+    pub fn get_status(&self) -> &Status {
+        &self.status
+    }
+
+    #[allow(dead_code)]
     pub fn start(&mut self) {
         self.status = Status::InProgress;
         self.start_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now()));

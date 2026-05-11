@@ -41,6 +41,10 @@ impl Mapper for MapperService {
             return Err(Status::not_found("No remaining mappers to assign"));
         }
 
+        // Look for an unassigned mapper and assign it to the worker
+
+
+
         // TODO - implement logic to assign a new task to the worker based on the current state of mappers and workers  
         // with the worker_id we can check if the worker is registered and if it can be assigned a task, if so we can 
         // update the state of the mapper and return the task info to the worker

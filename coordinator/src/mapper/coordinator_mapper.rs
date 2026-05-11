@@ -7,7 +7,8 @@ use std::{fs, io, path::Path};
 #[allow(dead_code)]
 pub struct CoordinatorMapper {
     mappers_map: DashMap<String, TaskInfo>,
-    mappers_list: SegQueue<TaskInfo>,
+    pub mappers_not_assigned: SegQueue<TaskInfo>,
+    pub mappers_assigned: SegQueue<TaskInfo>,
     pub mappers_remaining: i32,
 }
 
@@ -15,13 +16,14 @@ impl CoordinatorMapper {
     fn new() -> Self {
         CoordinatorMapper {
             mappers_map: DashMap::new(),
-            mappers_list: SegQueue::new(),
+            mappers_not_assigned: SegQueue::new(),
+            mappers_assigned: SegQueue::new(),
             mappers_remaining: 0,
         }
     }
 
     fn add_mapper(&mut self, task_name: &str) {
-        self.mappers_list.push(TaskInfo::new(task_name));
+        self.mappers_not_assigned.push(TaskInfo::new(task_name));
         self.mappers_remaining += 1;
     }
 
