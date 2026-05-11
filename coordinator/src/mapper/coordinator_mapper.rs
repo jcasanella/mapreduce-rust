@@ -1,18 +1,21 @@
+use crossbeam::queue::SegQueue;
+use dashmap::DashMap;
+
 use crate::mapper::task_info::TaskInfo;
-use std::{collections::HashMap, fs, io, path::Path};
+use std::{fs, io, path::Path};
 
 #[allow(dead_code)]
-struct CoordinatorMapper {
-    mappers_map: HashMap<String, TaskInfo>,
-    mappers_list: Vec<TaskInfo>,
-    mappers_remaining: i32,
+pub struct CoordinatorMapper {
+    mappers_map: DashMap<String, TaskInfo>,
+    mappers_list: SegQueue<TaskInfo>,
+    pub mappers_remaining: i32,
 }
 
 impl CoordinatorMapper {
     fn new() -> Self {
         CoordinatorMapper {
-            mappers_map: HashMap::new(),
-            mappers_list: Vec::new(),
+            mappers_map: DashMap::new(),
+            mappers_list: SegQueue::new(),
             mappers_remaining: 0,
         }
     }
@@ -21,6 +24,7 @@ impl CoordinatorMapper {
         self.mappers_list.push(TaskInfo::new(task_name));
         self.mappers_remaining += 1;
     }
+
 
     // #[allow(dead_code)]
     // fn complete_mapper(&mut self, worker_id: &String) {
@@ -45,7 +49,7 @@ impl Default for CoordinatorMapper {
     }
 }
 
-pub fn setup_mappers(dir: &Path) -> io::Result<()> {
+pub fn setup_mappers(dir: &Path) -> io::Result<CoordinatorMapper> {
     let mut coordinator_mapper = CoordinatorMapper::new();
 
     if dir.is_dir() {
@@ -65,7 +69,7 @@ pub fn setup_mappers(dir: &Path) -> io::Result<()> {
             coordinator_mapper.mappers_remaining
         );
 
-        Ok(())
+        Ok(coordinator_mapper)
     } else {
         Err(io::Error::new(
             io::ErrorKind::NotFound,

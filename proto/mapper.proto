@@ -5,7 +5,11 @@ import "google/protobuf/empty.proto";
 package mapper;
 
 service Mapper {
-    rpc GetNewTask (google.protobuf.Empty) returns (GetNewTaskResponse);
+    rpc GetNewTask (GetNewTaskRequest) returns (GetNewTaskResponse);
+}
+
+message GetNewTaskRequest {
+    string worker_id = 1;
 }
 
 message GetNewTaskResponse {

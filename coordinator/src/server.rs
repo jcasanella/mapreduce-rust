@@ -13,10 +13,11 @@ use crate::coordinator_state::CoordinatorState;
 pub async fn run(
     addr: SocketAddr,
     state: Arc<CoordinatorState>,
+    coordinator_mapper: Arc<crate::mapper::coordinator_mapper::CoordinatorMapper>,
 ) -> Result<(), tonic::transport::Error> {
     let registration_service = RegistrationService::new(Arc::clone(&state));
     let heartbeat_service = HeartbeatService::new(Arc::clone(&state));
-    let mapper_service = MapperService::new(Arc::clone(&state));
+    let mapper_service = MapperService::new(Arc::clone(&state), Arc::clone(&coordinator_mapper));
 
     println!("Coordinator server listening on {}", addr);
 
