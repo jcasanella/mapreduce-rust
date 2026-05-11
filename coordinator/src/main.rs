@@ -27,6 +27,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run the heartbeat monitoring in a separate task
     let heartbeat_handler = tokio::spawn(heartbeat::run(Arc::clone(&state)));
 
+    // Todo: Implement mapper assigner API as separate task
+    // let mapper_assigner_handler = tokio::spawn(mapper::run());
+
     // Wait for both tasks to complete (in practice, the server will run indefinitely)
     tokio::select! {
         res = server_handler => {

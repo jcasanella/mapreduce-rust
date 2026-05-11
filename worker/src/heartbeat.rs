@@ -1,5 +1,5 @@
 use proto::heartbeat::heartbeat_client::HeartbeatClient;
-use proto::mapper::mapper_client::MapperClient;
+use proto::mapper::{GetNewTaskResponse, mapper_client::MapperClient};
 
 use crate::config;
 
@@ -26,10 +26,13 @@ pub async fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error
 
             if !has_task {
                 // TODO - check what returns if can assign a task or not
-                mapper_client
+                let response = mapper_client
                     .get_new_task(tonic::Request::new(()))
                     .await
                     .expect("Failed to get new task");
+
+                let GetNewTaskResponse { task_id, file_path } = response.into_inner();
+                println!("Received new task: id={}, file_path={}", task_id, file_path);
             }
 
             match heartbeat_client.heartbeat(request).await {
