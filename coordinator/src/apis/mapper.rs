@@ -1,17 +1,18 @@
+use std::sync::Arc;
+
 use proto::mapper::{GetNewTaskResponse, mapper_server::Mapper};
 use tonic::{Request, Response, Status};
 
-pub struct MapperService {}
+use crate::coordinator_state::CoordinatorState;
 
-impl MapperService {
-    pub fn new() -> Self {
-        Self {}
-    }
+#[allow(dead_code)]
+pub struct MapperService {
+    state: Arc<CoordinatorState>,
 }
 
-impl Default for MapperService {
-    fn default() -> Self {
-        Self::new()
+impl MapperService {
+    pub fn new(state: Arc<CoordinatorState>) -> Self {
+        Self { state }
     }
 }
 

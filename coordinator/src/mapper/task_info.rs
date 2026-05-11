@@ -8,16 +8,16 @@ enum Status {
 
 #[allow(dead_code)]
 pub struct TaskInfo {
-    task_id: String,
+    task_name: String,
     status: Status,
     start_time: Option<prost_types::Timestamp>,
     end_time: Option<prost_types::Timestamp>,
 }
 
 impl TaskInfo {
-    pub fn new(task_id: &str) -> Self {
+    pub fn new(task_name: &str) -> Self {
         TaskInfo {
-            task_id: task_id.to_string(),
+            task_name: task_name.to_string(),
             status: Status::NotStarted,
             start_time: None,
             end_time: None,

@@ -16,7 +16,7 @@ pub async fn run(
 ) -> Result<(), tonic::transport::Error> {
     let registration_service = RegistrationService::new(Arc::clone(&state));
     let heartbeat_service = HeartbeatService::new(Arc::clone(&state));
-    let mapper_service = MapperService::new();
+    let mapper_service = MapperService::new(Arc::clone(&state));
 
     println!("Coordinator server listening on {}", addr);
 

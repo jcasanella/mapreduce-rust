@@ -1,10 +1,13 @@
 use crate::apis::heartbeat::HeartbeatInfo;
 use crate::apis::registration::RegistrationInfo;
+use crate::mapper::task_info::TaskInfo;
 use dashmap::DashMap;
 
+#[allow(dead_code)]
 pub struct CoordinatorState {
     pub registered_workers: DashMap<String, RegistrationInfo>,
     pub heartbeats: DashMap<String, HeartbeatInfo>,
+    pub mappers: DashMap<String, TaskInfo>,
 }
 
 impl CoordinatorState {
@@ -12,6 +15,7 @@ impl CoordinatorState {
         Self {
             registered_workers: DashMap::new(),
             heartbeats: DashMap::new(),
+            mappers: DashMap::new(),
         }
     }
 

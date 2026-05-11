@@ -1,40 +1,42 @@
 use crate::mapper::task_info::TaskInfo;
 use std::{collections::HashMap, fs, io, path::Path};
 
+#[allow(dead_code)]
 struct CoordinatorMapper {
-    mappers: HashMap<String, TaskInfo>,
+    mappers_map: HashMap<String, TaskInfo>,
+    mappers_list: Vec<TaskInfo>,
     mappers_remaining: i32,
 }
 
 impl CoordinatorMapper {
     fn new() -> Self {
         CoordinatorMapper {
-            mappers: HashMap::new(),
+            mappers_map: HashMap::new(),
+            mappers_list: Vec::new(),
             mappers_remaining: 0,
         }
     }
 
-    fn add_mapper(&mut self, task_id: &str) {
-        self.mappers
-            .insert(task_id.to_string(), TaskInfo::new(task_id));
+    fn add_mapper(&mut self, task_name: &str) {
+        self.mappers_list.push(TaskInfo::new(task_name));
         self.mappers_remaining += 1;
     }
 
-    #[allow(dead_code)]
-    fn complete_mapper(&mut self, worker_id: &String) {
-        if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
-            mapper_info.complete();
-            self.mappers_remaining -= 1;
-        }
-    }
+    // #[allow(dead_code)]
+    // fn complete_mapper(&mut self, worker_id: &String) {
+    //     if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
+    //         mapper_info.complete();
+    //         self.mappers_remaining -= 1;
+    //     }
+    // }
 
-    #[allow(dead_code)]
-    fn fail_mapper(&mut self, worker_id: &String, error_message: String) {
-        if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
-            mapper_info.fail(error_message);
-            self.mappers_remaining -= 1;
-        }
-    }
+    // #[allow(dead_code)]
+    // fn fail_mapper(&mut self, worker_id: &String, error_message: String) {
+    //     if let Some(mapper_info) = self.mappers.get_mut(worker_id) {
+    //         mapper_info.fail(error_message);
+    //         self.mappers_remaining -= 1;
+    //     }
+    // }
 }
 
 impl Default for CoordinatorMapper {
@@ -60,7 +62,7 @@ pub fn setup_mappers(dir: &Path) -> io::Result<()> {
 
         println!(
             "Finished setting up mappers. Total mappers: {}",
-            coordinator_mapper.mappers.len()
+            coordinator_mapper.mappers_remaining
         );
 
         Ok(())
