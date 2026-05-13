@@ -14,5 +14,5 @@ message GetNewTaskRequest {
 
 message GetNewTaskResponse {
     string file_path = 1;
-    int32 task_id = 2;
+    string task_id = 2;
 }

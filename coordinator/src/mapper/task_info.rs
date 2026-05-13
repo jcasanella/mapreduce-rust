@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-enum Status {
+pub enum Status {
     Complete,
     InProgress,
     Failed(String), // Include an error message for failed status
@@ -8,7 +8,7 @@ enum Status {
 
 #[allow(dead_code)]
 pub struct TaskInfo {
-    task_name: String,
+    pub task_name: String,
     status: Status,
     start_time: Option<prost_types::Timestamp>,
     end_time: Option<prost_types::Timestamp>,

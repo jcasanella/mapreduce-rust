@@ -27,7 +27,7 @@ pub async fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error
             if !has_task {
                 // TODO - check what returns if can assign a task or not
                 let response = mapper_client
-                    .get_new_task(tonic::Request::new(GetNewTaskRequest{
+                    .get_new_task(tonic::Request::new(GetNewTaskRequest {
                         worker_id: worker_id.clone(),
                     }))
                     .await

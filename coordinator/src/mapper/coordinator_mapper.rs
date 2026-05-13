@@ -6,27 +6,26 @@ use std::{fs, io, path::Path};
 
 #[allow(dead_code)]
 pub struct CoordinatorMapper {
-    mappers_map: DashMap<String, TaskInfo>,
+    mappers_assigned: DashMap<String, TaskInfo>,
     pub mappers_not_assigned: SegQueue<TaskInfo>,
-    pub mappers_assigned: SegQueue<TaskInfo>,
-    pub mappers_remaining: i32,
 }
 
 impl CoordinatorMapper {
     fn new() -> Self {
         CoordinatorMapper {
-            mappers_map: DashMap::new(),
+            mappers_assigned: DashMap::new(),
             mappers_not_assigned: SegQueue::new(),
-            mappers_assigned: SegQueue::new(),
-            mappers_remaining: 0,
         }
     }
 
     fn add_mapper(&mut self, task_name: &str) {
         self.mappers_not_assigned.push(TaskInfo::new(task_name));
-        self.mappers_remaining += 1;
     }
 
+    pub fn add_mapper_to_map(&self, worker_id: &str, task_info: TaskInfo) {
+        self.mappers_assigned
+            .insert(worker_id.to_string(), task_info);
+    }
 
     // #[allow(dead_code)]
     // fn complete_mapper(&mut self, worker_id: &String) {
@@ -68,7 +67,7 @@ pub fn setup_mappers(dir: &Path) -> io::Result<CoordinatorMapper> {
 
         println!(
             "Finished setting up mappers. Total mappers: {}",
-            coordinator_mapper.mappers_remaining
+            coordinator_mapper.mappers_not_assigned.len()
         );
 
         Ok(coordinator_mapper)

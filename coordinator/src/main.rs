@@ -17,13 +17,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     let config = Config::from_env()?;
-    let coordinator_mapper = coordinator_mapper::setup_mappers(path::Path::new(&config.mapper_resources_dir))?;
+    let coordinator_mapper =
+        coordinator_mapper::setup_mappers(path::Path::new(&config.mapper_resources_dir))?;
 
     let state = Arc::new(CoordinatorState::new());
     let mapper = Arc::new(coordinator_mapper);
 
     // Run the gRPC server in a separate task
-    let server_handler = tokio::spawn(server::run(config.addr, Arc::clone(&state), Arc::clone(&mapper)));
+    let server_handler = tokio::spawn(server::run(
+        config.addr,
+        Arc::clone(&state),
+        Arc::clone(&mapper),
+    ));
 
     // Run the heartbeat monitoring in a separate task
     let heartbeat_handler = tokio::spawn(heartbeat::run(Arc::clone(&state)));
