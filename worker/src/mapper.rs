@@ -23,7 +23,15 @@ pub async fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error
             has_task = true;
 
             let GetNewTaskResponse { task_id, file_path } = response.into_inner();
-            println!("Received new task: id={}, file_path={}", task_id, file_path);
+            match (task_id, file_path) {
+                (Some(task_id), Some(file_path)) => {
+                    println!("Received new task: id={}, file_path={}", task_id, file_path);
+                }
+                _ => {
+                    println!("No new task assigned, will check again later.");
+                    has_task = false;
+                }
+            }
         } else {
             println!("Already has a task assigned, skipping request for new task.");
         }

@@ -13,6 +13,6 @@ message GetNewTaskRequest {
 }
 
 message GetNewTaskResponse {
-    string file_path = 1;
-    string task_id = 2;
+    optional string file_path = 1;
+    optional string task_id = 2;
 }
