@@ -11,3 +11,5 @@ prost-types = { workspace = true }
 tokio = { workspace = true }
 tonic-prost = { workspace = true }
 dashmap = "6.1.0"
+dotenv = "0.15.0"
+crossbeam = "0.8.4"

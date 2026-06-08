@@ -1,41 +1,49 @@
-enum Status {
+#[allow(dead_code)]
+pub enum Status {
     Complete,
     InProgress,
     Failed(String), // Include an error message for failed status
     NotStarted,
 }
 
-
-
+#[allow(dead_code)]
 pub struct TaskInfo {
-    task_id: String,
+    pub task_name: String,
     status: Status,
     start_time: Option<prost_types::Timestamp>,
     end_time: Option<prost_types::Timestamp>,
 }
 
 impl TaskInfo {
-    pub fn new(task_id: &str) -> Self {
+    pub fn new(task_name: &str) -> Self {
         TaskInfo {
-            task_id: task_id.to_string(),
+            task_name: task_name.to_string(),
             status: Status::NotStarted,
             start_time: None,
             end_time: None,
         }
     }
 
+    #[allow(dead_code)]
+    pub fn get_status(&self) -> &Status {
+        &self.status
+    }
+
+    #[allow(dead_code)]
     pub fn start(&mut self) {
         self.status = Status::InProgress;
-        self.start_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now())); 
+        self.start_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now()));
     }
 
+    #[allow(dead_code)]
     pub fn complete(&mut self) {
         self.status = Status::Complete;
-        self.end_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now())); 
+        self.end_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now()));
     }
 
+    #[allow(dead_code)]
     pub fn fail(&mut self, error_message: String) {
         self.status = Status::Failed(error_message);
-        self.end_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now())); 
+        self.end_time = Some(prost_types::Timestamp::from(std::time::SystemTime::now()));
     }
 }

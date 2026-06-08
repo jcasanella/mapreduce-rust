@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct HeartbeatInfo {
     pub worker_id: String,
     pub last_heartbeat: prost_types::Timestamp,
@@ -39,12 +40,17 @@ impl Heartbeat for HeartbeatService {
 
         // Validate that the worker is registered
         if !self.state.registered_workers.contains_key(&req.worker_id) {
-            println!("Received heartbeat from unregistered worker: {}", req.worker_id);
+            println!(
+                "Received heartbeat from unregistered worker: {}",
+                req.worker_id
+            );
             return Err(Status::not_found("Worker not registered"));
         }
 
-        let heartbeat_info =
-            HeartbeatInfo::new(req.worker_id.clone(), prost_types::Timestamp::from(std::time::SystemTime::now()));
+        let heartbeat_info = HeartbeatInfo::new(
+            req.worker_id.clone(),
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
 
         match self
             .state
@@ -52,7 +58,7 @@ impl Heartbeat for HeartbeatService {
             .insert(req.worker_id.clone(), heartbeat_info)
         {
             Some(_) => println!("Updated heartbeat for worker: {}", req.worker_id),
-            None => println!("Inserted new heartbeat for worker: {}", req.worker_id)
+            None => println!("Inserted new heartbeat for worker: {}", req.worker_id),
         };
 
         Ok(Response::new(()))
@@ -73,11 +79,18 @@ mod tests {
         // Register a worker
         let worker_id = "worker1".to_string();
         let hostname = "localhost".to_string();
-        let registration_info = RegistrationInfo::new(hostname, prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.registered_workers.insert(worker_id.clone(), registration_info);
+        let registration_info = RegistrationInfo::new(
+            hostname,
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .registered_workers
+            .insert(worker_id.clone(), registration_info);
 
         // Send a heartbeat
-        let request = HeartbeatRequest { worker_id: worker_id.clone() };
+        let request = HeartbeatRequest {
+            worker_id: worker_id.clone(),
+        };
         let response = heartbeat_service.heartbeat(Request::new(request)).await;
 
         // Verify the response and that the heartbeat was recorded
@@ -85,31 +98,68 @@ mod tests {
         assert!(state.heartbeats.contains_key(&worker_id));
 
         let time_now = prost_types::Timestamp::from(std::time::SystemTime::now());
-        assert!(state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone().nanos > 0);
-        assert!(state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone().nanos < time_now.nanos);
+        assert!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .last_heartbeat
+                .clone()
+                .nanos
+                > 0
+        );
+        assert!(
+            state
+                .heartbeats
+                .get(&worker_id)
+                .unwrap()
+                .last_heartbeat
+                .clone()
+                .nanos
+                < time_now.nanos
+        );
     }
 
     #[tokio::test]
     async fn test_update_heartbeat_worker() {
         let state = Arc::new(CoordinatorState::new());
-        let heartbeat_service = HeartbeatService::new(Arc::clone(&state));      
+        let heartbeat_service = HeartbeatService::new(Arc::clone(&state));
 
         // Register a worker
         let worker_id = "worker1".to_string();
         let hostname = "localhost".to_string();
-        let registration_info = RegistrationInfo::new(hostname, prost_types::Timestamp::from(std::time::SystemTime::now()));
-        state.registered_workers.insert(worker_id.clone(), registration_info);
+        let registration_info = RegistrationInfo::new(
+            hostname,
+            prost_types::Timestamp::from(std::time::SystemTime::now()),
+        );
+        state
+            .registered_workers
+            .insert(worker_id.clone(), registration_info);
 
         // Send a heartbeat
-        let request1 = HeartbeatRequest { worker_id: worker_id.clone() };
-        let request2 = HeartbeatRequest { worker_id: worker_id.clone() };
+        let request1 = HeartbeatRequest {
+            worker_id: worker_id.clone(),
+        };
+        let request2 = HeartbeatRequest {
+            worker_id: worker_id.clone(),
+        };
         #[allow(unused_variables)]
-        let response1 =heartbeat_service.heartbeat(Request::new(request1)).await;
-        let heartbeat_info_before = state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone();
+        let response1 = heartbeat_service.heartbeat(Request::new(request1)).await;
+        let heartbeat_info_before = state
+            .heartbeats
+            .get(&worker_id)
+            .unwrap()
+            .last_heartbeat
+            .clone();
 
         let response2 = heartbeat_service.heartbeat(Request::new(request2)).await;
-        let heartbeat_info_after = state.heartbeats.get(&worker_id).unwrap().last_heartbeat.clone();
-        
+        let heartbeat_info_after = state
+            .heartbeats
+            .get(&worker_id)
+            .unwrap()
+            .last_heartbeat
+            .clone();
+
         // Verify the response and that the heartbeat was updated
         assert!(response1.is_ok());
         assert!(response2.is_ok());
@@ -120,10 +170,12 @@ mod tests {
     #[tokio::test]
     async fn test_heartbeat_unregistered_worker() {
         let state = Arc::new(CoordinatorState::new());
-        let heartbeat_service = HeartbeatService::new(Arc::clone(&state));      
+        let heartbeat_service = HeartbeatService::new(Arc::clone(&state));
 
         // Send a heartbeat from an unregistered worker
-        let request = HeartbeatRequest { worker_id: "unregistered_worker".to_string() };
+        let request = HeartbeatRequest {
+            worker_id: "unregistered_worker".to_string(),
+        };
         let response = heartbeat_service.heartbeat(Request::new(request)).await;
 
         // Verify that the response is an error and that no heartbeat was recorded

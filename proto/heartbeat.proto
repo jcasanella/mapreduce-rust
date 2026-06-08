@@ -1,4 +1,4 @@
-syntax="proto3";
+syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
@@ -9,5 +9,5 @@ service Heartbeat {
 }
 
 message HeartbeatRequest {
-    string workerId = 1;
+    string worker_id = 1;
 }
