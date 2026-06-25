@@ -5,6 +5,7 @@ mod heartbeat;
 mod mapper;
 mod registration;
 use config::Config;
+mod map;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
