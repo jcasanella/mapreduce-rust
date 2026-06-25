@@ -1,7 +1,6 @@
-use proto::mapper;
 use proto::mapper::{GetNewTaskRequest, GetNewTaskResponse, mapper_client::MapperClient};
 use std::{fs::File, io::BufReader, io::BufRead};
-use crate::map::word_count::WordCountMapper;
+use crate::map::{WordCountMapper, Mapper};
 
 use crate::config;
 
@@ -47,7 +46,10 @@ pub async fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error
 
                     for line in reader.lines() {
                         match line {
-                            Ok(l) => mapper.map(l),
+                            Ok(l) => {
+                                let pairs = mapper.map(l);
+                                println!("Mapped pairs: {:?}", pairs);
+                            }
                             Err(e) => eprintln!("Error reading line: {}", e),
                         }
                     }
