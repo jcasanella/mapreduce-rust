@@ -11,8 +11,8 @@ pub async fn register_worker(
         hostname: config.hostname.clone(),
     });
 
-    let registered = registration_client.register(request).await?;
-    println!("Registered worker: {:?}", registered);
+    registration_client.register(request).await?;
+    println!("Registered worker: {:?}", config.worker_id);
 
     Ok(())
 }

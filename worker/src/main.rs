@@ -11,7 +11,7 @@ mod map;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
-    let config = Config::from_env()?;
+    let config = Config::from_env()?; 
     registration::register_worker(&config).await?;
 
     let heartbeat_handler = tokio::spawn(heartbeat::run(config.clone()));
